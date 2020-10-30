@@ -1,0 +1,29 @@
+{
+  "name": "nodejs-hw",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+  "test": "test",
+  "start": "node index.js",
+  "dev": "nodemon index.js"  
+},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nataliia-Smirnova/nodejs-hw.git"
+  },
+  "author": "Nataliia Smirnova",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Nataliia-Smirnova/nodejs-hw/issues"
+  },
+  "homepage": "https://github.com/Nataliia-Smirnova/nodejs-hw#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "nanoid": "^3.1.16",
+    "yargs": "^16.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.6"
+  }
+}
