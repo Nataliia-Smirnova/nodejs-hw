@@ -3,6 +3,7 @@ require('dotenv').config({ path: path.join(__dirname, '../.env') })
 
 const express = require('express');
 const morgan = require('morgan');
+const mongoose = require('mongoose');
 const { contactsRouter } = require('./contacts/contacts.router');
 
 
@@ -12,9 +13,9 @@ exports.CrudServer = class {
         this.app = null;
     }
 
-    start() {
+    async start() {
         this.initServer();
-        // this.initDatabase();
+        await this.initDatabase();
         this.initMiddlewares();
         this.initRoutes();
         this.initErrorHandling();
@@ -23,6 +24,20 @@ exports.CrudServer = class {
 
     initServer() {
         this.app = express()
+    }
+
+    async initDatabase() {
+        try {
+            await mongoose.connect(process.env.MONGODB_URL, {
+                useNewUrlParser: true,
+                useUnifiedTopology: true,
+                useFindAndModify: false,
+            });
+            console.log('Database connection successful');
+        } catch (error) {
+            console.log(error);
+            process.exit(1);
+        }
     }
 
     initMiddlewares() {
