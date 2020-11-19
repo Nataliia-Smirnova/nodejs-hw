@@ -42,3 +42,15 @@ exports.login = async (req, res, next) => {
         next(error)
     }
 }
+
+
+exports.logout = async (req, res, next) => {
+    try {
+        const { user, token } = req;
+
+        await UserModel.updateOne({ _id: user.id }, { $set: { token: "" } });
+        return res.status(204).send()
+    } catch (error) {
+        next(error);
+    }
+}
