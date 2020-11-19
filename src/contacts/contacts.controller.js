@@ -1,3 +1,4 @@
+const mongoosePaginate = require('mongoose-paginate-v2');
 const { ContactModel } = require('./contacts.model');
 
 
@@ -12,8 +13,14 @@ exports.createContact = async (req, res, next) => {
 
 exports.getContacts = async (req, res, next) => {
     try {
-        const allContacts = await ContactModel.find();
-        return res.status(200).send(allContacts);
+        const { page, limit } = req.query;
+        const options = {
+            page,
+            limit,
+        };
+        await ContactModel.paginate({}, options, function (err, result) {
+            return res.status(200).send(result.docs);
+        });;
     } catch (error) {
         next(error)
     }
