@@ -13,12 +13,14 @@ exports.createContact = async (req, res, next) => {
 
 exports.getContacts = async (req, res, next) => {
     try {
-        const { page, limit } = req.query;
+        const { page, limit, sub } = req.query;
         const options = {
-            page,
-            limit,
+            page: page || 1,
+            limit: limit || 100,
+            options: { subscription: sub },
         };
-        await ContactModel.paginate({}, options, function (err, result) {
+        console.log(options.options);
+        await ContactModel.paginate((options.options), options, function (err, result) {
             return res.status(200).send(result.docs);
         });;
     } catch (error) {
