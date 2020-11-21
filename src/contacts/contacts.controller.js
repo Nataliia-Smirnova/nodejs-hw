@@ -16,13 +16,12 @@ exports.getContacts = async (req, res, next) => {
         const { page, limit, sub } = req.query;
         const options = {
             page: page || 1,
-            limit: limit || 100,
+            limit: limit || 20,
             options: { subscription: sub },
         };
-        console.log(options.options);
-        await ContactModel.paginate((options.options), options, function (err, result) {
-            return res.status(200).send(result.docs);
-        });;
+        const contactsList = await ContactModel.paginate(sub && options.options, options);
+
+        return res.status(200).send(contactsList.docs);
     } catch (error) {
         next(error)
     }
