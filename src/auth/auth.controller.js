@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 const { avatarGenerator } = require('../helpers/avatarGenerator');
 const { Conflict, Unauthorized, NotFound } = require("../helpers/errors");
 const { UserModel } = require("../users/users.model");
+const { promises: fsPromises } = require("fs");
+const path = require('path');
 
 exports.register = async (req, res, next) => {
     try {
@@ -17,7 +19,12 @@ exports.register = async (req, res, next) => {
 
         const passwordHash = await bcrypt.hash(password, +process.env.SALT_ROUNDS);
         const newUser = await UserModel.create({ email, password: passwordHash, avatarURL });
-
+        
+        const src = path.join(__dirname, (`../public/tmp/${avatarName}`));
+        const dest = path.join(__dirname, (`../public/images/${avatarName}`));
+        await fsPromises.link(src, dest);
+        await fsPromises.unlink(src);
+        
         res.status(201).send({
             id: newUser._id, email, subscription: newUser.subscription, avatarURL
         })
