@@ -24,7 +24,8 @@ exports.CrudServer = class {
     }
 
     initServer() {
-        this.app = express()
+        this.app = express();
+        this.app.use('/images', express.static(__dirname + '/public/images'))
     }
 
     async initDatabase() {

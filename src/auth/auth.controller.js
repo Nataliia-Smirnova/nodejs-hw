@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { avatarGenerator } = require('../helpers/avatarGenerator');
 const { Conflict, Unauthorized, NotFound } = require("../helpers/errors");
 const { UserModel } = require("../users/users.model");
 
@@ -11,11 +12,14 @@ exports.register = async (req, res, next) => {
             throw new Conflict('Email in use')
         }
 
+        const avatarName = await avatarGenerator(email);
+        const avatarURL = `http://localhost:${process.env.PORT}/images/${avatarName}`
+
         const passwordHash = await bcrypt.hash(password, +process.env.SALT_ROUNDS);
-        const newUser = await UserModel.create({ email, password: passwordHash });
+        const newUser = await UserModel.create({ email, password: passwordHash, avatarURL });
 
         res.status(201).send({
-            id: newUser._id, email, subscription: newUser.subscription
+            id: newUser._id, email, subscription: newUser.subscription, avatarURL
         })
     } catch (error) {
         next(error);
