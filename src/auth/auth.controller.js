@@ -1,7 +1,10 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { avatarGenerator } = require('../helpers/avatarGenerator');
 const { Conflict, Unauthorized, NotFound } = require("../helpers/errors");
 const { UserModel } = require("../users/users.model");
+const { promises: fsPromises } = require("fs");
+const path = require('path');
 
 exports.register = async (req, res, next) => {
     try {
@@ -11,11 +14,19 @@ exports.register = async (req, res, next) => {
             throw new Conflict('Email in use')
         }
 
-        const passwordHash = await bcrypt.hash(password, +process.env.SALT_ROUNDS);
-        const newUser = await UserModel.create({ email, password: passwordHash });
+        const avatarName = await avatarGenerator(email);
+        const avatarURL = `http://localhost:${process.env.PORT}/images/${avatarName}`
 
+        const passwordHash = await bcrypt.hash(password, +process.env.SALT_ROUNDS);
+        const newUser = await UserModel.create({ email, password: passwordHash, avatarURL });
+        
+        const src = path.join(__dirname, (`../public/tmp/${avatarName}`));
+        const dest = path.join(__dirname, (`../public/images/${avatarName}`));
+        await fsPromises.link(src, dest);
+        await fsPromises.unlink(src);
+        
         res.status(201).send({
-            id: newUser._id, email, subscription: newUser.subscription
+            id: newUser._id, email, subscription: newUser.subscription, avatarURL
         })
     } catch (error) {
         next(error);
