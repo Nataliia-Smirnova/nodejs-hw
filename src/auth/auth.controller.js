@@ -5,6 +5,8 @@ const { Conflict, Unauthorized, NotFound } = require("../helpers/errors");
 const { UserModel } = require("../users/users.model");
 const { promises: fsPromises } = require("fs");
 const path = require('path');
+const { v4: uuidv4 } = require('uuid');
+const { verificationEmailSend } = require('../helpers/verificationEmailSend');
 
 exports.register = async (req, res, next) => {
     try {
@@ -16,15 +18,16 @@ exports.register = async (req, res, next) => {
 
         const avatarName = await avatarGenerator(email);
         const avatarURL = `http://localhost:${process.env.PORT}/images/${avatarName}`
-
+        const verificationToken = uuidv4();
         const passwordHash = await bcrypt.hash(password, +process.env.SALT_ROUNDS);
-        const newUser = await UserModel.create({ email, password: passwordHash, avatarURL });
+        const newUser = await UserModel.create({ email, password: passwordHash, avatarURL, verificationToken });
         
         const src = path.join(__dirname, (`../public/tmp/${avatarName}`));
         const dest = path.join(__dirname, (`../public/images/${avatarName}`));
         await fsPromises.link(src, dest);
         await fsPromises.unlink(src);
         
+        await verificationEmailSend(email, verificationToken);
         res.status(201).send({
             id: newUser._id, email, subscription: newUser.subscription, avatarURL
         })
@@ -61,6 +64,17 @@ exports.logout = async (req, res, next) => {
 
         await UserModel.updateOne({ _id: user.id }, { $set: { token: "" } });
         return res.status(204).send()
+    } catch (error) {
+        next(error);
+    }
+}
+
+exports.verify = async (req, res, next) => {
+    try {
+        const { verificationToken } = req.params;
+        const updatedUser = await UserModel.findOneAndUpdate({ verificationToken }, { $set: { verificationToken: "" } }) ;
+        if (!updatedUser) { throw new NotFound('User not found') };
+        return res.status(200).send();
     } catch (error) {
         next(error);
     }
